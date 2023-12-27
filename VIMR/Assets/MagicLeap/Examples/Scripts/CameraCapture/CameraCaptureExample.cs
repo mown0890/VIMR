@@ -231,7 +231,8 @@ namespace MagicLeap.Examples
         private void ConnectCamera()
         {
             MLCamera.ConnectContext context = MLCamera.ConnectContext.Create();
-            context.Flags = ConnectFlag;
+            //context.Flags = ConnectFlag;
+            context.Flags = MLCameraBase.ConnectFlag.CamOnly;
             context.EnableVideoStabilization = true;
 
             if (context.Flags != MLCamera.ConnectFlag.CamOnly)
@@ -452,6 +453,8 @@ namespace MagicLeap.Examples
             captureCamera.PreCaptureAEAWB();
             result = captureCamera.CaptureImage(1);
 
+            
+
             if (!result.IsOk)
             {
                 Debug.LogError("Image capture failed!");
@@ -670,6 +673,10 @@ namespace MagicLeap.Examples
         private void OnCaptureRawImageComplete(MLCamera.CameraOutput capturedImage, MLCamera.ResultExtras resultExtras, MLCamera.Metadata metadataHandle)
         {
             captureInfoText.text = capturedImage.ToString();
+
+            //call API
+
+            return;
 
             isDisplayingImage = true;
             cameraCaptureVisualizer.OnCaptureDataReceived(resultExtras, capturedImage);
