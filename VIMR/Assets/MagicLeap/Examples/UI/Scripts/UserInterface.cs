@@ -99,10 +99,11 @@ namespace MagicLeap.Examples
             _canvasDistance = _minDistance;
             _placeFromCamera.Distance = _canvasDistance;
 
-            _title.text = GetTitle();
+            //_title.text = GetTitle();
 
             // Open the these two tabs by default.
-            _overviewTab.Pressed();
+            //_overviewTab.Pressed();
+            //_SceneTab.Pressed();
             if (_statusTab.gameObject.activeSelf)
             {
                 _statusTab.Pressed();

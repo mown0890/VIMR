@@ -118,11 +118,11 @@ namespace MagicLeap.Examples
             permissionCallbacks.OnPermissionGranted += OnPermissionGranted;
             permissionCallbacks.OnPermissionDenied += OnPermissionDenied;
             permissionCallbacks.OnPermissionDeniedAndDontAskAgain += OnPermissionDenied;
-            
+
             cameraCaptureButtons = new()
             {
                 captureButton,
-                connectButton, 
+                connectButton,
                 disconnectButton,
             };
 
@@ -334,13 +334,16 @@ namespace MagicLeap.Examples
         /// </summary>
         private void OnCaptureButtonClicked()
         {
+            //
+            GameObject.Find("DebugText").GetComponent<TMPro.TextMeshProUGUI>().text = "OnCaptureButtonClicked";
+
             if (isCapturingVideo || isDisplayingImage || isCapturingPreview)
                 return;
 
             if (GetStreamCapability().CaptureType == MLCamera.CaptureType.Image)
             {
                 CaptureImage();
-                Invoke(nameof(DisableImageCaptureObject), 10);
+                Invoke(nameof(DisableImageCaptureObject), 2);
             }
             else if (GetStreamCapability().CaptureType == MLCamera.CaptureType.Video ||
                      GetStreamCapability().CaptureType == MLCamera.CaptureType.Preview)
@@ -443,6 +446,9 @@ namespace MagicLeap.Examples
 
             captureConfig.CaptureFrameRate = MLCamera.CaptureFrameRate._30FPS;
             captureConfig.StreamConfigs = new MLCamera.CaptureStreamConfig[1];
+            //captureConfig.StreamConfigs[0] =
+            //    MLCamera.CaptureStreamConfig.Create(GetStreamCapability(), OutputFormat);
+
             captureConfig.StreamConfigs[0] =
                 MLCamera.CaptureStreamConfig.Create(GetStreamCapability(), OutputFormat);
             MLResult result = captureCamera.PrepareCapture(captureConfig, out MLCamera.Metadata _);
@@ -452,8 +458,6 @@ namespace MagicLeap.Examples
 
             captureCamera.PreCaptureAEAWB();
             result = captureCamera.CaptureImage(1);
-
-            
 
             if (!result.IsOk)
             {
@@ -674,9 +678,25 @@ namespace MagicLeap.Examples
         {
             captureInfoText.text = capturedImage.ToString();
 
-            //call API
+            //Call Recoginition
+            try
+            {
+                //GameObject.Find("DebugText").GetComponent<TMPro.TextMeshProUGUI>().text = "Starting Recognition";
+                string result = GameObject.Find("SceneManager").GetComponent<PlateRecognitionScript>().RecognizePlate(capturedImage.Planes[0].Data);
+                //GameObject.Find("DebugText").GetComponent<TMPro.TextMeshProUGUI>().text = result;
 
-            return;
+                GameObject.Find("PlateNumber").GetComponent<TMPro.TextMeshProUGUI>().text = "Vehicle Plate No: <color=\"red\">" + result.ToUpper();
+
+                GameObject.Find("ContentMain").GetComponent<RectTransform>().localScale = Vector3.zero;
+                GameObject.Find("ContentCB").GetComponent<RectTransform>().localScale = Vector3.one;
+                GameObject.Find("VehicleDetails1").GetComponent<RectTransform>().localScale = Vector3.one;
+            }
+            catch (Exception ex)
+            {
+                GameObject.Find("DebugText").GetComponent<TMPro.TextMeshProUGUI>().text = ex.ToString();
+            }
+
+            //return;
 
             isDisplayingImage = true;
             cameraCaptureVisualizer.OnCaptureDataReceived(resultExtras, capturedImage);
@@ -750,7 +770,7 @@ namespace MagicLeap.Examples
         {
             status.Clear();
             status.AppendLine($"<color=#B7B7B8><b>Controller Data</b></color>\nStatus: {ControllerStatus.Text}");
-         
+
             if (captureCamera is { IsPaused: true })
             {
                 status.AppendLine($"Waiting for camera to resume");
@@ -762,7 +782,7 @@ namespace MagicLeap.Examples
             }
             if (!isCapturingVideo && !isCapturingPreview && !string.IsNullOrEmpty(recordedFilePath))
             {
-                status.AppendLine( $"Recorded video file path:\n {recordedFilePath}");
+                status.AppendLine($"Recorded video file path:\n {recordedFilePath}");
             }
 
             statusText.text = status.ToString();
@@ -780,7 +800,7 @@ namespace MagicLeap.Examples
             captureButton.gameObject.SetActive(IsCameraConnected);
             connectButton.gameObject.SetActive(!IsCameraConnected);
             disconnectButton.gameObject.SetActive(IsCameraConnected);
-            
+
             SetupCapture();
             RefreshStreamCapabilitiesUI();
             SetupCaptureFormat();
@@ -828,13 +848,15 @@ namespace MagicLeap.Examples
             var selectedOption = qualityDropDown.GetSelected<MLCamera.MRQuality>();
             qualityDropDown.ClearOptions();
 
-            qualityDropDown.AddOptions(MLCamera.MRQuality._648x720, MLCamera.MRQuality._960x720, MLCamera.MRQuality._972x1080,
-                MLCamera.MRQuality._1440x1080);
+            //qualityDropDown.AddOptions(MLCamera.MRQuality._648x720, MLCamera.MRQuality._960x720, MLCamera.MRQuality._972x1080,
+            //    MLCamera.MRQuality._1440x1080);
 
-            if (FrameRate != MLCamera.CaptureFrameRate._60FPS)
-            {
-                qualityDropDown.AddOptions(MLCamera.MRQuality._1944x2160, MLCamera.MRQuality._2880x2160);
-            }
+            qualityDropDown.AddOptions(MLCamera.MRQuality._972x1080);
+
+            //if (FrameRate != MLCamera.CaptureFrameRate._60FPS)
+            //{
+            //    qualityDropDown.AddOptions(MLCamera.MRQuality._1944x2160, MLCamera.MRQuality._2880x2160);
+            //}
 
             qualityDropDown.SelectOption(selectedOption, false);
         }
@@ -857,7 +879,7 @@ namespace MagicLeap.Examples
 
             if (ConnectFlag == MLCamera.ConnectFlag.CamOnly)
             {
-                outputFormatDropDown.AddOptions(MLCamera.OutputFormat.YUV_420_888);
+                //outputFormatDropDown.AddOptions(MLCamera.OutputFormat.YUV_420_888);
             }
 
             if (GetStreamCapability().CaptureType == MLCamera.CaptureType.Image)
@@ -868,7 +890,7 @@ namespace MagicLeap.Examples
             if (GetStreamCapability().CaptureType == MLCamera.CaptureType.Video ||
                 ConnectFlag != MLCamera.ConnectFlag.CamOnly)
             {
-                outputFormatDropDown.AddOptions(MLCamera.OutputFormat.RGBA_8888);
+                //outputFormatDropDown.AddOptions(MLCamera.OutputFormat.RGBA_8888);
             }
 
             outputFormatDropDown.SelectOption(selected, false);
@@ -942,14 +964,17 @@ namespace MagicLeap.Examples
 
             streamCapabilitiesDropdown.ClearOptions();
 
-            streamCapabilitiesDropdown.AddOptions(streamCapabilities
-                .Where(s => s.CaptureType == CaptureType &&
-                            (s.CaptureType != MLCamera.CaptureType.Video ||
-                             FrameRate != MLCamera.CaptureFrameRate._60FPS ||
-                             s.Height <= 1080)).GroupBy(s => s.Width * 1000 + s.Height)
-                .Select(s => s.FirstOrDefault())
-                .Select(s => $"{s.Width}x{s.Height}")
-                .ToList());
+            //streamCapabilitiesDropdown.AddOptions(streamCapabilities
+            //    .Where(s => s.CaptureType == CaptureType &&
+            //                (s.CaptureType != MLCamera.CaptureType.Video ||
+            //                 FrameRate != MLCamera.CaptureFrameRate._60FPS ||
+            //                 s.Height <= 1080)).GroupBy(s => s.Width * 1000 + s.Height)
+            //    .Select(s => s.FirstOrDefault())
+            //    .Select(s => $"{s.Width}x{s.Height}")
+            //    .ToList());
+
+            List<string> options = new List<string>() { "1920x1080" };
+            streamCapabilitiesDropdown.AddOptions(options);
 
             for (int i = 0; i < streamCapabilitiesDropdown.options.Count; i++)
             {
