@@ -30,7 +30,7 @@ public class PlateRecognitionScript : MonoBehaviour
 
     }
 
-    PlateRecognitionResponse RecognizePlate(byte[] bytePlate)
+    string RecognizePlate(byte[] bytePlate)
     {
         string base64String = Convert.ToBase64String(bytePlate);
 
@@ -52,7 +52,30 @@ public class PlateRecognitionScript : MonoBehaviour
         // Read and print the response content
         string responseContent = response.Content.ReadAsStringAsync().Result;
 
-        return JsonUtility.FromJson<PlateRecognitionResponse>(item);
+        return Plate(responseContent)
+    }
+
+    string Plat1(string content)
+    {
+        return JsonUtility.FromJson<PlateRecognitionResponse>(content).AccuratePlate();
+    }
+
+    string Plate2(string content)
+    {
+        // Use regular expressions to find the property in the JSON string
+        string pattern = $"\"{plate}\":(.*?)[,}}]";
+        Match match = Regex.Match(content, pattern);
+
+        if (match.Success)
+        {
+            // Extract the value of the property
+            string propertyValue = match.Groups[1].Value.Trim();
+            return propertyValue;
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 }
 
